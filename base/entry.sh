@@ -1,5 +1,17 @@
 #!/bin/sh
+
+# maybe needded
+service rsyslog start
+service cron restart
+crontab -r
+
+# fix link-count, as cron is being a pain, and docker is making hardlink count >0 (very high)
+# see https://unix.stackexchange.com/questions/453006/getting-cron-to-work-on-docker
+touch /etc/crontab /etc/cron.*/*
+
 # Import your cron file
-/usr/bin/crontab /etc/borgmatic.d/crontab.txt
-# Start cron
-/usr/sbin/crond -f -L /dev/stdout
+crontab /etc/borgmatic.d/crontab.txt
+
+trap : TERM INT
+tail -f /var/log/syslog & wait
+

@@ -1,53 +1,64 @@
-FROM alpine:latest as builder
-LABEL mainainer='b3vis'
-ARG BORG_VERSION=1.1.15
-ARG BORGMATIC_VERSION=1.5.12
-ARG LLFUSE_VERSION=1.3.6
-RUN apk upgrade --no-cache \
-    && apk add --no-cache \
-    alpine-sdk \
-    python3-dev \
-    py3-pip \
-    openssl-dev \
-    lz4-dev \
-    acl-dev \
-    linux-headers \
-    fuse-dev \
-    attr-dev \
-    py3-wheel \
-    && pip3 install --upgrade pip \
-    && pip3 install --upgrade borgbackup==${BORG_VERSION} \
-    && pip3 install --upgrade borgmatic==${BORGMATIC_VERSION} \
-    && pip3 install --upgrade llfuse==${LLFUSE_VERSION}
+# same functionality as b3vis/docker-borgmatic
+# but with another base image
+# cron in python docker image from https://github.com/fronzbot/docker-pycron/blob/master/Dockerfile
 
-FROM alpine:latest
-LABEL mainainer='b3vis'
-COPY entry.sh /entry.sh
-RUN apk upgrade --no-cache \
-    && apk add --no-cache \
-    tzdata \
-    sshfs \
-    python3 \
-    openssl \
-    fuse \
-    ca-certificates \
-    lz4-libs \
-    libacl \
-    postgresql-client \
-    mariadb-client \
+FROM python:3.8-slim-buster 
+
+# from official borgbackup from source
+# but assuming python is already installed
+
+# borgmatic needs cron
+# we need also openssh-client
+# we need tzdata to use the TZ variable
+RUN apt-get update && apt upgrade -y && \
+    apt-get install --no-install-recommends -y \
     curl \
-    && rm -rf /var/cache/apk/* \
-    && chmod 755 /entry.sh
+    cron \ 
+    rsyslog \
+    logrotate \
+    libssl-dev \ 
+    openssl \
+    libacl1-dev \
+    libacl1 \
+    build-essential \
+    openssh-client \
+    libfuse-dev fuse pkg-config \
+    tzdata \   
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists
+
+
+RUN pip3 install -U pip setuptools wheel
+RUN pip3 install borgbackup[fuse]
+RUN pip3 install borgmatic
+
+COPY entry.sh /entry.sh
+RUN chmod 755 /entry.sh
+
+COPY rsyslog.conf /etc/rsyslog.conf
+RUN chmod 755 /entry.sh
+
+
+# User Shares (Read-only Backup Source) 
 VOLUME /mnt/source
+
+# Borg Repo (Backup Destination)
 VOLUME /mnt/borg-repository
+
+# Borgmatic Config
 VOLUME /etc/borgmatic.d
+
+# Borg Keys
 VOLUME /root/.config/borg
+
+# SSH Keys 
 VOLUME /root/.ssh
+
+# Borg Cache
 VOLUME /root/.cache/borg
-COPY --from=builder /usr/lib/python3.8/site-packages /usr/lib/python3.8/
-COPY --from=builder /usr/bin/borg /usr/bin/
-COPY --from=builder /usr/bin/borgfs /usr/bin/
-COPY --from=builder /usr/bin/borgmatic /usr/bin/
-COPY --from=builder /usr/bin/generate-borgmatic-config /usr/bin/
-COPY --from=builder /usr/bin/upgrade-borgmatic-config /usr/bin/
+
+# Fuse mount point
+VOLUME /mnt/fuse
+
 CMD ["/entry.sh"]
+
