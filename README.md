@@ -18,3 +18,10 @@ Speed issues (and fix) can also be observed just running scp between the two mac
 
 ### Usage
 General instructions can be found in the base image [README](./base/README.md).
+
+### Build the image
+
+```
+cd base
+docker build --no-cache --pull -t whatyouwant/docker-borgmatic .
+```
