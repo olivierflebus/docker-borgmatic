@@ -9,8 +9,11 @@
 
 ### Description
 
-This is a fork of the b3vis docker-borgmatic image (https://github.com/b3vis/docker-borgmatic) that I've rebased to python:3.8-slim-buster, as the alpine base has serious performance issues over ssh on my unraid system (don't know why).
+This is a fork of the b3vis docker-borgmatic image (https://github.com/b3vis/docker-borgmatic) that I've rebased to python:3.8-slim-buster (and then upgraded to bullseye), as the alpine base has serious performance issues over ssh on my unraid system (don't know why).
 
+With this simple modification I'm able to go from 1 MB/s to 50 MB/s between my two borg machines.
+
+Speed issues (and fix) can also be observed just running scp between the two machines. So it seems it's not borg's fault ;-)
 
 
 ### Usage
