@@ -22,14 +22,15 @@ RUN apt-get update && apt upgrade -y && \
     libacl1 \
     build-essential \
     openssh-client \
-    libfuse-dev fuse pkg-config \
+    libfuse3-dev fuse3 pkg-config python3-pkgconfig \
     tzdata \   
     && apt-get clean \
     && rm -rf /var/lib/apt/lists
 
 
 RUN pip3 install -U pip setuptools wheel
-RUN pip3 install borgbackup[fuse]
+RUN pip3 install pkgconfig
+RUN pip3 install borgbackup[pyfuse3]
 RUN pip3 install borgmatic
 
 COPY entry.sh /entry.sh
