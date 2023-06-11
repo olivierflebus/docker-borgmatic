@@ -2,7 +2,7 @@
 # but with another base image
 # cron in python docker image from https://github.com/fronzbot/docker-pycron/blob/master/Dockerfile
 
-FROM python:3.9-slim-bullseye
+FROM python:3.11.4-slim-bullseye
 
 # from official borgbackup from source
 # but assuming python is already installed
