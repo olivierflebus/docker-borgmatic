@@ -31,8 +31,8 @@ RUN apt-get update && apt upgrade -y && \
     && rm -rf /var/lib/apt/lists
 
 # borgbackup from  https://borgbackup.readthedocs.io/en/stable/installation.html#using-pip   
-RUN virtualenv --python=python3 borg-env
-RUN source borg-env/bin/activate
+# RUN virtualenv --python=python3 borg-env
+# RUN source borg-env/bin/activate
     
 # might be required if your tools are outdated
 RUN pip install -U pip setuptools wheel
