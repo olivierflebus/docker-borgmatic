@@ -1,4 +1,4 @@
-FROM python:3.11-slim-bookworm
+FROM python:3.11-bookworm
 
 # dependencies (and cron)
 RUN apt-get update && apt upgrade -y && \
