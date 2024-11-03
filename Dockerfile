@@ -1,17 +1,8 @@
-# same functionality as b3vis/docker-borgmatic
-# but with another base image
-# cron in python docker image from https://github.com/fronzbot/docker-pycron/blob/master/Dockerfile
+FROM python:3.11-slim-bookworm
 
-FROM python:3.11
-
-# from official borgbackup from source
-# but assuming python is already installed
-
-# borgmatic needs cron
-# we need also openssh-client
-# we need tzdata to use the TZ variable
+# dependencies (and cron)
 RUN apt-get update && apt upgrade -y && \
-    apt-get install --no-install-recommends -y \
+    apt-get install -y \
     curl \
     cron \ 
     rsyslog \
@@ -30,7 +21,17 @@ RUN apt-get update && apt upgrade -y && \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists
 
-# borgbackup from  https://borgbackup.readthedocs.io/en/stable/installation.html#using-pip   
+# volume for crontab
+VOLUME /etc/cron.d
+RUN chmod 0644 /etc/cron.d/*
+
+
+# BORG INSTALL
+
+# from official borgbackup from source
+# but assuming python is already installed
+
+# from  https://borgbackup.readthedocs.io/en/stable/installation.html#using-pip   
 # RUN virtualenv --python=python3 borg-env
 # RUN source borg-env/bin/activate
     
@@ -40,20 +41,16 @@ RUN pip install -U pip setuptools wheel
 # pkgconfig MUST be available before borg is installed!
 RUN pip install pkgconfig
     
-# install Borg + Python dependencies into virtualenv
+# install Borg + Python dependencies
 RUN pip install borgbackup[pyfuse3]
 
 
+# BORGMATIC INSTALL
 
-# borgmatic from https://torsion.org/borgmatic/docs/how-to/set-up-backups/#non-root-install
+# from https://torsion.org/borgmatic/docs/how-to/set-up-backups/#non-root-install
 RUN pipx ensurepath
 RUN pipx install borgmatic
 
-COPY entry.sh /entry.sh
-RUN chmod 755 /entry.sh
-
-COPY rsyslog.conf /etc/rsyslog.conf
-RUN chmod 755 /entry.sh
 
 
 # User Shares (Read-only Backup Source) 
@@ -77,5 +74,6 @@ VOLUME /root/.cache/borg
 # Fuse mount point
 VOLUME /mnt/fuse
 
-CMD ["/entry.sh"]
+# Assurer que cron est bien démarré dans le conteneur
+CMD ["cron", "-f"]
 
