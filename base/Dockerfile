@@ -18,20 +18,36 @@ RUN apt-get update && apt upgrade -y && \
     logrotate \
     libssl-dev \ 
     openssl \
+    openssh-client \
+    python3 python3-dev python3-pip python3-virtualenv \
     libacl1-dev \
     libacl1 \
+    liblz4-dev libzstd-dev libxxhash-dev \
     build-essential \
-    openssh-client \
     libfuse3-dev fuse3 pkg-config python3-pkgconfig \
-    tzdata \   
+    tzdata \ 
+    pipx \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists
 
+# borgbackup from  https://borgbackup.readthedocs.io/en/stable/installation.html#using-pip   
+RUN virtualenv --python=python3 borg-env
+RUN source borg-env/bin/activate
+    
+# might be required if your tools are outdated
+RUN pip install -U pip setuptools wheel
 
-RUN pip3 install -U pip setuptools wheel
-RUN pip3 install pkgconfig
-RUN pip3 install borgbackup[pyfuse3]
-RUN pip3 install borgmatic
+# pkgconfig MUST be available before borg is installed!
+RUN pip install pkgconfig
+    
+# install Borg + Python dependencies into virtualenv
+RUN pip install borgbackup[pyfuse3]
+
+
+
+# borgmatic from https://torsion.org/borgmatic/docs/how-to/set-up-backups/#non-root-install
+RUN pipx ensurepath
+RUN pipx install borgmatic
 
 COPY entry.sh /entry.sh
 RUN chmod 755 /entry.sh
