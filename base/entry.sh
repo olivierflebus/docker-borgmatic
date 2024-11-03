@@ -1,8 +1,8 @@
 #!/bin/sh
 
 # maybe needded
-service rsyslog start
-service cron restart
+systemctl rsyslog start
+systemctl cron restart
 crontab -r
 
 # fix link-count, as cron is being a pain, and docker is making hardlink count >0 (very high)
